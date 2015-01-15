@@ -1,0 +1,148 @@
+## assignment 7
+## Team DD
+## 13-01-2015
+## email ben: benjamin.devries@wur.nl
+
+## libraries
+library(raster)
+library(rasterVis)
+
+## download data
+
+download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/GewataB1.rda', destfile = 'data/GewataB1.rda', method = 'auto')
+download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/GewataB2.rda', destfile = 'data/GewataB2.rda', method = 'auto')
+download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/GewataB3.rda', destfile = 'data/GewataB3.rda', method = 'auto')
+download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/GewataB4.rda', destfile = 'data/GewataB4.rda', method = 'auto')
+download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/GewataB5.rda', destfile = 'data/GewataB5.rda', method = 'auto')
+download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/GewataB7.rda', destfile = 'data/GewataB7.rda', method = 'auto')
+download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/vcfGewata.rda', destfile = 'data/vcfGewata.rda', method = 'auto')
+download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/trainingPoly.rda', destfile = 'data/trainingPoly.rda', method = 'auto')
+
+## load data
+
+load("data/GewataB1.rda")
+load("data/GewataB2.rda")
+load("data/GewataB3.rda")
+load("data/GewataB4.rda")
+load("data/GewataB5.rda")
+load("data/GewataB7.rda")
+load("data/vcfGewata.rda")
+load("data/trainingPoly.rda")
+
+## band 6 (thermal infra-red) will be excluded from this exercise
+
+# put the 3 bands into a rasterBrick object to summarize together
+gewata <- brick(GewataB1, GewataB2,GewataB3,GewataB4, GewataB5, GewataB7)
+
+# 3 histograms in one window (automatic, if a rasterBrick is supplied)
+# hist(gewata)
+# pairs(gewata)
+
+# Assign to NA values 
+vcfGewata[vcfGewata > 100] <- NA
+
+
+gewata <- calc(gewata, fun=function(x) x / 10000)
+
+# make a new raster brick of covariates by adding NDVI and VCF layers
+covs <- addLayer(gewata, vcfGewata)
+
+# adding names to the columns and creating a scatter matrix of the bands vs VCF
+
+names(gewata) <- c("band1", "band2", "band3", "band4", "band5", "band7")
+names(covs) <- c("band1", "band2", "band3", "band4", "band5", "band7", "VCF")
+pairs(covs)
+# Concluded from these plots is that all bands except for band 4 are likely
+# predictors for the linear model.
+
+# Bricking the covs data
+covs_brick <- brick(covs) 
+
+# Testing data of covs
+head(covs_brick)
+
+# the 'Class' column is actually an ordered factor type
+trainingPoly@data$Class
+str(trainingPoly@data$Class)
+
+# convert to integer by using the as.numeric() function, 
+# which takes the factor levels
+trainingPoly@data$Code <- as.numeric(trainingPoly@data$Class)
+trainingPoly@data
+
+# combine df dataframe to the classes
+# Creating a data frame for the overall map
+valuetable <- getValues(covs_brick)
+valuetable <- na.omit(valuetable)
+summary(valuetable)
+df <- as.data.frame(valuetable)
+head(df, n = 10)
+
+# Creating the linear model for the overall map, band 4 is excluded from the linear model
+lm_overall <- lm(formula = VCF ~ band1 + band2 + band3 + band5 + band7, data = df)
+#plot(lm_overall, col = 'green')
+
+# summary of the linear model
+summary(lm_overall)
+# Conclustion: 
+# Summary of the linear_model shows that all the included bands are highly significant
+# for the prediction of y (VCF).
+
+# Create raster based on linear model
+Prediction_vcf <- predict(covs_brick, lm_overall, filename="data/prediction_raster", progress = "text", overwrite = TRUE)
+Prediction_vcf[Prediction_vcf < 0] <- NA
+
+# class codes from the training polygons are added to the raster data sets
+add_codes <- rasterize(trainingPoly, covs_brick, field = "Code")
+covs_brick <- addLayer(covs_brick, add_codes)
+
+# masking the polygon areas and creating a data frame
+Masking_Polygon <-mask(covs_brick,trainingPoly)
+valuetable1 <- getValues(Masking_Polygon)
+valuetable1 <- na.omit(valuetable1)
+df2 <- as.data.frame(valuetable1)
+head(df2, n = 10)
+
+# linear model for masking areas, also excluding band 4
+lm_mask <- lm(formula = VCF ~ band1 + band2 + band3 + band5 + band7, data = df2)
+#plot(lm_mask, col = 'green')
+
+# create raster based on masked linear model
+Prediction_vcf_mask <- predict(covs_brick, lm_mask, filename="data/prediction_raster_mask", progress = "text", overwrite = TRUE)
+Prediction_vcf_mask[Prediction_vcf_mask < 0] <- NA
+
+# Change layout to same scale bar
+# Plot out predicted values next to the orginal VCF
+# Also included are the differnce between the predicted model and the VCF model
+Difference <- Prediction_vcf - vcfGewata
+parplot <- par(mfrow=c(2,2))
+plot(Prediction_vcf, zlim = c(0,100), main = "Prediction Model")
+plot(vcfGewata, main = "VCF Model")
+plot(Difference, zlim = c(0, 60), main = "Difference between Predicted and VCF Model")
+par(parplot)
+
+# Preparing RMSE variables for the overall map
+y_pred <- Prediction_vcf
+y_pred
+head(y_pred)
+y <- vcfGewata
+x <- (y-y_pred)^2
+z <- cellStats(x, stat='mean')
+RMSE <- sqrt(z)
+RMSE
+# a RMSE of 8.998 for the overall map
+
+# Preparing RMSE variables for polygon areas
+y_pred1 <- Prediction_vcf_mask
+y_pred1
+head(y_pred1)
+y1 <- vcfGewata
+x1 <- (y1-y_pred1)^2
+z1 <- zonal(x1, add_codes, fun='mean', digits=0, na.rm=TRUE)
+RMSE1 <- sqrt(z1[,2])
+RMSE1
+# RMSE class 1: 8.633
+# RMSE class 2: 4.686
+# RMSE class 3: 9.482
+
+
