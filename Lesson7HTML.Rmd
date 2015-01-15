@@ -1,11 +1,20 @@
-## assignment 7
-## Team DD
-## 13-01-2015
-## email ben: benjamin.devries@wur.nl
+---
+title: "Lesson 7 GeoScripting"
+author: "TeamDD"
+date: "Thursday, January 15, 2015"
+output: html_document
+---
 
+
+```{r}
 ## libraries
 library(raster)
 library(rasterVis)
+
+```
+
+
+
 
 ## create data folder
 
@@ -128,6 +137,7 @@ par(parplot)
 # Preparing RMSE variables for the overall map
 y_pred <- Prediction_vcf
 y_pred
+head(y_pred)
 y <- vcfGewata
 x <- (y-y_pred)^2
 z <- cellStats(x, stat='mean')
@@ -138,6 +148,7 @@ RMSE
 # Preparing RMSE variables for polygon areas
 y_pred1 <- Prediction_vcf_mask
 y_pred1
+head(y_pred1)
 y1 <- vcfGewata
 x1 <- (y1-y_pred1)^2
 z1 <- zonal(x1, add_codes, fun='mean', digits=0, na.rm=TRUE)
@@ -146,5 +157,4 @@ RMSE1
 # RMSE class 1: 8.633
 # RMSE class 2: 4.686
 # RMSE class 3: 9.482
-
 

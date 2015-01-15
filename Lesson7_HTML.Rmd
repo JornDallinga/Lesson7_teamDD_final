@@ -1,3 +1,13 @@
+---
+title: "Lesson_7"
+author: "Team_DD"
+authors: "Jorn Dallinga & Daniel Scheerooren"
+date: "Thursday, January 15, 2015"
+output: html_document
+---
+
+
+```{r}
 ## assignment 7
 ## Team DD
 ## 13-01-2015
@@ -9,18 +19,18 @@ library(rasterVis)
 
 ## create data folder
 
-dir.create("./data")
+#dir.create("./data")
 
 ## download data
 
-download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/GewataB1.rda', destfile = 'data/GewataB1.rda', method = 'auto')
-download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/GewataB2.rda', destfile = 'data/GewataB2.rda', method = 'auto')
-download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/GewataB3.rda', destfile = 'data/GewataB3.rda', method = 'auto')
-download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/GewataB4.rda', destfile = 'data/GewataB4.rda', method = 'auto')
-download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/GewataB5.rda', destfile = 'data/GewataB5.rda', method = 'auto')
-download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/GewataB7.rda', destfile = 'data/GewataB7.rda', method = 'auto')
-download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/vcfGewata.rda', destfile = 'data/vcfGewata.rda', method = 'auto')
-download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/trainingPoly.rda', destfile = 'data/trainingPoly.rda', method = 'auto')
+#download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/GewataB1.rda', destfile = 'data/GewataB1.rda', method = 'auto')
+#download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/GewataB2.rda', destfile = 'data/GewataB2.rda', method = 'auto')
+#download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/GewataB3.rda', destfile = 'data/GewataB3.rda', method = 'auto')
+#download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/GewataB4.rda', destfile = 'data/GewataB4.rda', method = 'auto')
+#download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/GewataB5.rda', destfile = 'data/GewataB5.rda', method = 'auto')
+#download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/GewataB7.rda', destfile = 'data/GewataB7.rda', method = 'auto')
+#download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/vcfGewata.rda', destfile = 'data/vcfGewata.rda', method = 'auto')
+#download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/trainingPoly.rda', destfile = 'data/trainingPoly.rda', method = 'auto')
 
 ## load data
 
@@ -84,7 +94,7 @@ head(df, n = 10)
 
 # Creating the linear model for the overall map, band 4 is excluded from the linear model
 lm_overall <- lm(formula = VCF ~ band1 + band2 + band3 + band5 + band7, data = df)
-#plot(lm_overall, col = 'green')
+plot(lm_overall, col = 'green')
 
 # summary of the linear model
 summary(lm_overall)
@@ -147,4 +157,8 @@ RMSE1
 # RMSE class 2: 4.686
 # RMSE class 3: 9.482
 
+
+
+
+```
 
