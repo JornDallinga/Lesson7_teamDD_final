@@ -7,6 +7,10 @@
 library(raster)
 library(rasterVis)
 
+## create data folder
+
+dir.create("./data")
+
 ## download data
 
 download.file(url = 'https://github.com/GeoScripting-WUR/AdvancedRasterAnalysis/raw/gh-pages/data/GewataB1.rda', destfile = 'data/GewataB1.rda', method = 'auto')
